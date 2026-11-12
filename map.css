@@ -34,3 +34,56 @@ body {
   pointer-events: auto; /*to allow the browser to detect the mouse hovering over teh circles*/
 }
 
+
+/* Custom station tooltip: Make it look nicer with more details */
+#tooltip {
+  position: fixed;
+  z-index: 1000;
+  background: white;
+  color: #253245;
+  padding: 14px 18px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e0e6ec;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  min-width: 190px;
+  max-width: 260px;
+  pointer-events: none;
+}
+
+#tooltip.hidden {
+  display: none;
+}
+
+#tooltip h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: #245b86;
+}
+
+#tooltip .total {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+#tooltip .detail {
+  margin: 5px 0;
+}
+
+#tooltip .traffic-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+#tooltip .departures {
+  background: steelblue;
+}
+
+#tooltip .arrivals {
+  background: #79bfa3;
+}

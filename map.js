@@ -9,6 +9,10 @@ console.log('Mapbox GL JS Loaded:', mapboxgl);
 //Select the SVG Element Inside the Map Container
 const svg = d3.select('#map').select('svg');
 
+//Select the tooltip
+const tooltip = d3.select('#tooltip');
+
+
 // Set your Mapbox access token here
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2FmaWEtc2Z1IiwiYSI6ImNtd2NveDNsbDA0czUyeG9sc2I2aXp5cGQifQ.mq8GUTi6D1-Dww0XNDYSiA'
 
@@ -112,7 +116,7 @@ map.on('load', async () => { //ensures that the JSON data is only fetched after 
         // TODO departures
         station.departures = departures.get(id) ?? 0;
         // TODO totalTraffic
-        station.totalTraffic = station.arrivals = station.departures;
+        station.totalTraffic = station.arrivals + station.departures;
         return station;
     });
 
@@ -136,14 +140,76 @@ map.on('load', async () => { //ensures that the JSON data is only fetched after 
         .attr('stroke', 'white') // Circle border color
         .attr('stroke-width', 1) // Circle border thickness
         .attr('opacity', 0.8) // Circle opacity
-        .each(function (d) {
+        /*.each(function (d) {
             // Add <title> for browser tooltips
             d3.select(this)
                 .append('title')
                 .text(
                     `${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`,
                 );
-        });
+        });*/ //Removed because I changet the look of the tooltip
+        // Show tooltip when hovering over a station
+        .on('mouseenter', function (event, d) {
+
+            console.log('Hovered station:', {
+                name: d.name,
+                totalTraffic: d.totalTraffic,
+                departures: d.departures,
+                arrivals: d.arrivals
+            });
+
+            const total = d.totalTraffic;
+            const departurePercent = total > 0
+            ? (d.departures / total) * 100
+            : 0;
+
+            const arrivalPercent = total > 0
+            ? (d.arrivals / total) * 100
+            : 0;
+
+            // Build the tooltip using D3
+            tooltip.html('');
+
+            tooltip.append('h3')
+                .text(d.name || 'Bluebikes Station');
+
+            tooltip.append('div')
+                .attr('class', 'total')
+                .text(`${total.toLocaleString()} trips`);
+
+            tooltip.append('div')
+                .attr('class', 'detail')
+                .text(`🔵 Departures: ${d.departures.toLocaleString()} (${departurePercent.toFixed(1)}%)`);
+
+            tooltip.append('div')
+                .attr('class', 'detail')
+                .text(`🟢 Arrivals: ${d.arrivals.toLocaleString()} (${arrivalPercent.toFixed(1)}%)`);
+
+            const bar = tooltip.append('div')
+                .attr('class', 'traffic-bar');
+
+            bar.append('div')
+                .attr('class', 'departures')
+                .style('width', `${departurePercent}%`);
+
+            bar.append('div')
+                .attr('class', 'arrivals')
+                .style('width', `${arrivalPercent}%`);
+
+            tooltip.classed('hidden', false);
+        })
+
+    // Move tooltip with the mouse
+    .on('mousemove', function (event) {
+        tooltip
+        .style('left', `${event.clientX + 15}px`)
+        .style('top', `${event.clientY + 15}px`);
+    })
+
+    // Hide tooltip when mouse leaves
+    .on('mouseleave', function () {
+        tooltip.classed('hidden', true);
+    });
 
 
     //Update circle positions when the map moves
