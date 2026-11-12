@@ -86,17 +86,65 @@ map.on('load', async () => { //ensures that the JSON data is only fetched after 
     let stations = jsonData.data.stations;
     console.log('Stations Array:', stations);
 
+    //Step 4: Load Bluebikes traffic data
+    const trips = await d3.csv('https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv');
+    console.log('Trips:', trips);
+
+    // Calculate departures 
+    const departures = d3.rollup(
+        trips,
+        (v) => v.length,
+        (d) => d.start_station_id,
+    );
+
+    // Calculate arrivals 
+    const arrivals = d3.rollup(
+        trips,
+        (v) => v.length,
+        (d) => d.end_station_id,
+    );
+
+    //Add traffic information to each station
+    stations = stations.map((station) => {
+        let id = station.short_name;
+        //Arrivals:
+        station.arrivals = arrivals.get(id) ?? 0;
+        // TODO departures
+        station.departures = departures.get(id) ?? 0;
+        // TODO totalTraffic
+        station.totalTraffic = station.arrivals = station.departures;
+        return station;
+    });
+
+    console.log('Stations with traffic:', stations);
+
+    //Use Radius scale for size markers (circles)
+    const radiusScale = d3
+        .scaleSqrt()
+        .domain([0, d3.max(stations, (d) => d.totalTraffic)])
+        .range([0, 25]);
+
+
     // Append circles for each station
     const circles = svg
         .selectAll('circle')
         .data(stations)
         .enter()
         .append('circle')
-        .attr('r', 5) // Radius of the circle
+        .attr('r', (d) => radiusScale(d.totalTraffic)) // Radius of the circle
         .attr('fill', 'steelblue') // Circle fill color
         .attr('stroke', 'white') // Circle border color
         .attr('stroke-width', 1) // Circle border thickness
-        .attr('opacity', 0.8); // Circle opacity
+        .attr('opacity', 0.8) // Circle opacity
+        .each(function (d) {
+            // Add <title> for browser tooltips
+            d3.select(this)
+                .append('title')
+                .text(
+                    `${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`,
+                );
+        });
+
 
     //Update circle positions when the map moves
     function updatePositions() {
