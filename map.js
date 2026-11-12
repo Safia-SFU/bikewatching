@@ -6,6 +6,8 @@ import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 // Check that Mapbox GL JS is loaded
 console.log('Mapbox GL JS Loaded:', mapboxgl);
 
+//Select the SVG Element Inside the Map Container
+const svg = d3.select('#map').select('svg');
 
 // Set your Mapbox access token here
 mapboxgl.accessToken = 'pk.eyJ1Ijoic2FmaWEtc2Z1IiwiYSI6ImNtd2NveDNsbDA0czUyeG9sc2I2aXp5cGQifQ.mq8GUTi6D1-Dww0XNDYSiA'
@@ -19,6 +21,14 @@ const map = new mapboxgl.Map({
   minZoom: 5, // Minimum allowed zoom
   maxZoom: 18, // Maximum allowed zoom
 });
+
+//Define a Helper Function to Convert Coordinates
+function getCoords(station) {
+    const point = new mapboxgl.LngLat(+station.lon, +station.lat); // Convert lon/lat to Mapbox LngLat
+    const { x, y } = map.project(point); // Project to pixel coordinates
+    return { cx: x, cy: y }; // Return as object for use in SVG attributes
+}
+
 
 //Wait until the map finishes loading before adding the bike lane data
 map.on('load', async () => { //ensures that the JSON data is only fetched after the map is fully loaded and ready.
@@ -66,16 +76,43 @@ map.on('load', async () => { //ensures that the JSON data is only fetched after 
         const jsonurl = 'https://dsc-courses.github.io/dsc209r-2025-fa/labs/lab07/data/bluebikes-stations.json';
 
         // Await JSON fetch
-        const jsonData = await d3.json(jsonurl); //  loads the JSON file asynchronously using D3.js
+        jsonData = await d3.json(jsonurl); //  loads the JSON file asynchronously using D3.js
         console.log('Loaded JSON Data:', jsonData); // Log to verify structure
     } catch (error) {
         console.error('Error loading JSON:', error); // Handle errors
     }
 
-    if (jsonData) {
-        let stations = jsonData.data.stations;
-        console.log('Stations Array:', stations);
+    
+    let stations = jsonData.data.stations;
+    console.log('Stations Array:', stations);
+
+    // Append circles for each station
+    const circles = svg
+        .selectAll('circle')
+        .data(stations)
+        .enter()
+        .append('circle')
+        .attr('r', 5) // Radius of the circle
+        .attr('fill', 'steelblue') // Circle fill color
+        .attr('stroke', 'white') // Circle border color
+        .attr('stroke-width', 1) // Circle border thickness
+        .attr('opacity', 0.8); // Circle opacity
+
+    //Update circle positions when the map moves
+    function updatePositions() {
+        circles
+        .attr('cx', (d) => getCoords(d).cx) // Set the x-position using projected coordinates
+        .attr('cy', (d) => getCoords(d).cy); // Set the y-position using projected coordinates
     }
+
+    // Initial position update when map loads
+    updatePositions();
+
+    // Reposition markers when the map changes
+    map.on('move', updatePositions); // Update during map movement
+    map.on('zoom', updatePositions); // Update during zooming
+    map.on('resize', updatePositions); // Update on window resize
+    map.on('moveend', updatePositions); // Final adjustment after movement ends
 
 });
 
