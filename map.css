@@ -5,8 +5,8 @@ body {
   height: 100%;
   width: 100%;
   display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
+  /*justify-content: center; /* Center horizontally */
+  /*align-items: center; /* Center vertically */
 }
 
 
@@ -86,4 +86,31 @@ body {
 
 #tooltip .arrivals {
   background: #79bfa3;
+}
+
+
+/* Step 5.1: Time filter slider */
+header {
+  display: flex;
+  gap: 1em;
+  align-items: baseline;
+}
+
+header label {
+  margin-left: auto;
+}
+
+#time-slider {
+  width: 300px;
+}
+
+#selected-time,
+#any-time {
+  display: block;
+  text-align: right;
+}
+
+#any-time {
+  color: gray;
+  font-style: italic;
 }
