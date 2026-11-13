@@ -26,8 +26,19 @@ body {
   pointer-events: none; /*drag and zoom the map without SVG overlay blocking interations*/
 }
 
-#map svg circle {
-  fill: steelblue;
+#map svg circle,
+  .legend > div {
+    --color-departures: steelblue;
+    --color-arrivals: darkorange;
+    --color: color-mix(
+      in oklch,
+      var(--color-departures) calc(100% * var(--departure-ratio)),
+      var(--color-arrivals)
+      );
+  }
+/* Map circles*/
+#map svg circle{
+  fill: var(--color);
   fill-opacity: 0.6;
   stroke: white;
   stroke-width: 1;
@@ -113,4 +124,37 @@ header label {
 #any-time {
   color: gray;
   font-style: italic;
+}
+
+
+/* Step 6.2: Legend */
+.legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5em;
+    margin-block: 1em;
+    font-family: system-ui, sans-serif;
+    font-size: 0.9em;
+}
+
+
+
+/* Each legend item */
+.legend > div {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    font-weight: bold;
+}
+
+/* Colored swatches */
+.legend > div::before {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    background: var(--color);
+    border-radius: 50%;
+    flex-shrink: 0;
 }

@@ -39,6 +39,9 @@ function formatTime(minutes) {
     return date.toLocaleString('en-US', { timeStyle: 'short' }); // Format as HH:MM AM/PM
 }
 
+//Step 6.1: Quantize scale for traffic flow:
+let stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
+
 //Compute station traffic seperately
 function computeStationTraffic(stations, trips) {
     // Compute departures
@@ -177,6 +180,9 @@ map.on('load', async () => { //ensures that the JSON data is only fetched after 
         .attr('stroke', 'white') // Circle border color
         .attr('stroke-width', 1) // Circle border thickness
         .attr('opacity', 0.8) // Circle opacity
+        .style('--departure-ratio', (d) =>
+            stationFlow(d.departures / d.totalTraffic),)
+
         /*.each(function (d) {
             // Add <title> for browser tooltips
             d3.select(this)
@@ -301,7 +307,11 @@ map.on('load', async () => { //ensures that the JSON data is only fetched after 
         circles
             .data(filteredStations, (d) => d.short_name) // Ensure D3 tracks elmts correctly
             .join('circle') // Ensure the data is bound correctly
-            .attr('r', (d) => radiusScale(d.totalTraffic)); // Update circle sizes
+            .attr('r', (d) => radiusScale(d.totalTraffic)) // Update circle sizes
+            .style('--departure-ratio', (d) =>
+                stationFlow(d.departures / d.totalTraffic),
+            );
+
     }
 
 
